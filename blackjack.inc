@@ -522,7 +522,7 @@ stock BJ_Render_Score(playerid, e_BJ_PLAYERS:playertype) {
     if (playertype == BJ_DEALER) {
         return 0;
     }
-    new Float:newX = 320.000000 + BJ_CARDS_X_OFFSETS[playertype]
+    new Float:newX = 320.000000 + BJ_CARDS_X_OFFSETS[playertype];
     if (BJ_Games[playerid][BJ_PlayerTextdraws][e_BJ_TEXTDRAWS:playertype] != INVALID_PLAYER_TEXT_ID) {
         new Float:x, Float:y;
         PlayerTextDrawGetPos(playerid, BJ_Games[playerid][BJ_PlayerTextdraws][e_BJ_TEXTDRAWS:playertype], x, y);
