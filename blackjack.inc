@@ -147,12 +147,15 @@ stock BJ_StartGame(playerid, stake) {
     SetTimerEx("BJ_FlipCard", BJ_DRAW_DELAY_MS, false, "iii", playerid, BJ_DEALER, 0);
     SetTimerEx("BJ_FlipCard", 2*BJ_DRAW_DELAY_MS, false, "iii", playerid, BJ_PLAYER, 0);
     SetTimerEx("BJ_FlipCard", 3*BJ_DRAW_DELAY_MS, false, "iii", playerid, BJ_PLAYER, 1);
-    //SetTimerEx("BJ_SetControlsActive", 3000, false, "ii", playerid, true);
 }
 
 // Отрисовка текстдравов для игры
 stock BJ_DrawTable(playerid) {
     BJ_DrawPlayerButtons(playerid);
+}
+
+stock BJ_DoesGameExist(playerid) {
+    return BJ_Games[playerid][BJ_IsActive];
 }
 
 // Скрытие текстдравов, перевод в неактивное состояние
@@ -165,6 +168,7 @@ public BJ_HideTable(playerid) {
     for (new e_BJ_PLAYERS:i = BJ_DEALER; i < BJ_PLAYERS_AMOUNT; i++) {
         BJ_DeleteCards(playerid, i);
     }
+    PlayerTextDrawDestroy(playerid, INVALID_PLAYER_TEXT_ID);
     BJ_Games[playerid][BJ_IsActive] = false;
 }
 
@@ -219,6 +223,7 @@ stock BJ_GetCardValue(cardidx) {
     return min((cardidx % 13) + 1, 10);
 }
 
+// Обработка логики после добавления новой карты
 stock BJ_ProcessDraw(playerid, e_BJ_PLAYERS:playertype) {
     new sum = BJ_Games[playerid][BJ_Scores][playertype];
     if (playertype == BJ_DEALER) {
@@ -281,11 +286,18 @@ stock BJ_DealerTurn(playerid) {
 // "Переворот" карты
 forward BJ_FlipCard(playerid, e_BJ_PLAYERS:playertype, cardidx);
 public BJ_FlipCard(playerid, e_BJ_PLAYERS:playertype, cardidx) {
+    if (!BJ_DoesGameExist(playerid)) {
+        return 1;
+    }
     switch (playertype) {
         case BJ_DEALER:
             BJ_Games[playerid][BJ_DealerHand][cardidx] = random(CARD_STACK_SIZE);
         case BJ_PLAYER:
             BJ_Games[playerid][BJ_PlayerHand][cardidx] = random(CARD_STACK_SIZE);
+        case BJ_PLAYER_SPLIT_FIRST:
+            BJ_Games[playerid][BJ_PlayerFirstHand][cardidx] = random(CARD_STACK_SIZE);
+        case BJ_PLAYER_SPLIT_SECOND:
+            BJ_Games[playerid][BJ_PlayerSecondHand][cardidx] = random(CARD_STACK_SIZE);
         default:
             return 1;
     }
@@ -294,6 +306,10 @@ public BJ_FlipCard(playerid, e_BJ_PLAYERS:playertype, cardidx) {
     if (!(playertype == BJ_DEALER && cardidx == 0))
         BJ_ProcessDraw(playerid, playertype);
     if (playertype == BJ_PLAYER && cardidx == 1 && BJ_Games[playerid][BJ_Scores][BJ_PLAYER] < 21) {
+        BJ_SetControlsActive(playerid, true);
+    }
+    if (playertype == BJ_PLAYER_SPLIT_SECOND && cardidx == 1) {
+        BJ_SwitchTurn(playerid, BJ_PLAYER_SPLIT_FIRST);
         BJ_SetControlsActive(playerid, true);
     }
     return 0;
@@ -342,6 +358,8 @@ stock BJ_EndPlayerTurn(playerid, e_BJ_PLAYERS:playertype) {
     return 0;
 }
 
+
+// Добавление карты в руку
 forward BJ_AddCard(playerid, e_BJ_PLAYERS:playertype);
 public BJ_AddCard(playerid, e_BJ_PLAYERS:playertype) {
     switch (playertype) {
@@ -364,6 +382,9 @@ public BJ_AddCard(playerid, e_BJ_PLAYERS:playertype) {
 // Добор карты
 forward BJ_Hit(playerid, e_BJ_PLAYERS:playertype);
 public BJ_Hit(playerid, e_BJ_PLAYERS:playertype) {
+    if (!BJ_DoesGameExist(playerid)) {
+        return 1;
+    }
     BJ_AddCard(playerid, playertype);
     BJ_ProcessDraw(playerid, playertype);
     return 0;
@@ -372,6 +393,9 @@ public BJ_Hit(playerid, e_BJ_PLAYERS:playertype) {
 // Завершение хода
 forward BJ_Stay(playerid, e_BJ_PLAYERS:playertype);
 public BJ_Stay(playerid, e_BJ_PLAYERS:playertype) {
+    if (!BJ_DoesGameExist(playerid)) {
+        return 1;
+    }
     BJ_EndPlayerTurn(playerid, playertype);
     return 0;
 }
@@ -380,6 +404,9 @@ public BJ_Stay(playerid, e_BJ_PLAYERS:playertype) {
 // Удвоение ставки
 forward BJ_Double(playerid, e_BJ_PLAYERS:playertype);
 public BJ_Double(playerid, e_BJ_PLAYERS:playertype) {
+    if (!BJ_DoesGameExist(playerid)) {
+        return 1;
+    }
     if (BJ_Games[playerid][BJ_CardsAmount][playertype] != 2) {
         SendClientMessage(playerid, 0xFFFFFFFF, "Удвоить ставку можно только на первом ходу!");
         return 1;
@@ -397,6 +424,9 @@ public BJ_Double(playerid, e_BJ_PLAYERS:playertype) {
 // Разделение карт
 forward BJ_Split(playerid);
 public BJ_Split(playerid) {
+    if (!BJ_DoesGameExist(playerid)) {
+        return 1;
+    }
     if (BJ_Games[playerid][BJ_CardsAmount][BJ_PLAYER] != 2) {
         SendClientMessage(playerid, 0xFFFFFFFF, "Разделить карты можно только на первом ходу!");
         return 1;
@@ -411,9 +441,8 @@ public BJ_Split(playerid) {
     }
     BJ_Games[playerid][BJ_PlayerFirstHand][BJ_Games[playerid][BJ_CardsAmount][BJ_PLAYER_SPLIT_FIRST]++] = BJ_Games[playerid][BJ_PlayerHand][0];
     BJ_Games[playerid][BJ_PlayerSecondHand][BJ_Games[playerid][BJ_CardsAmount][BJ_PLAYER_SPLIT_SECOND]++] = BJ_Games[playerid][BJ_PlayerHand][1];
-    // TODO: add em after delay? (through hit?)
-    BJ_Games[playerid][BJ_PlayerFirstHand][BJ_Games[playerid][BJ_CardsAmount][BJ_PLAYER_SPLIT_FIRST]++] = random(CARD_STACK_SIZE);
-    BJ_Games[playerid][BJ_PlayerSecondHand][BJ_Games[playerid][BJ_CardsAmount][BJ_PLAYER_SPLIT_SECOND]++] = random(CARD_STACK_SIZE);
+    BJ_Games[playerid][BJ_PlayerFirstHand][BJ_Games[playerid][BJ_CardsAmount][BJ_PLAYER_SPLIT_FIRST]++] = CARD_STACK_SIZE;
+    BJ_Games[playerid][BJ_PlayerSecondHand][BJ_Games[playerid][BJ_CardsAmount][BJ_PLAYER_SPLIT_SECOND]++] = CARD_STACK_SIZE;
     BJ_Games[playerid][BJ_Stakes][1] = BJ_Games[playerid][BJ_Stakes][0];
     BJ_Games[playerid][BJ_Stakes][2] = BJ_Games[playerid][BJ_Stakes][0];
     
@@ -430,8 +459,12 @@ public BJ_Split(playerid) {
     BJ_Render_Cards(playerid, BJ_PLAYER_SPLIT_SECOND);
     BJ_UpdateSum(playerid, BJ_PLAYER_SPLIT_FIRST);
     BJ_UpdateSum(playerid, BJ_PLAYER_SPLIT_SECOND);
-    BJ_SwitchTurn(playerid, BJ_PLAYER_SPLIT_FIRST);
-    // BJ_ProcessDraw(playerid, BJ_PLAYER_SPLIT_FIRST);
+
+    BJ_SetControlsActive(playerid, false);
+
+    SetTimerEx("BJ_FlipCard", BJ_DRAW_DELAY_MS, false, "iii", playerid, BJ_PLAYER_SPLIT_FIRST, 1);
+    SetTimerEx("BJ_FlipCard", 2*BJ_DRAW_DELAY_MS, false, "iii", playerid, BJ_PLAYER_SPLIT_SECOND, 1);
+
     return 0;
 }
 
@@ -484,29 +517,40 @@ stock BJ_DeleteCards(playerid, e_BJ_PLAYERS:playertype) {
     }
 }
 
+// Отрисовка текстрава с очками
 stock BJ_Render_Score(playerid, e_BJ_PLAYERS:playertype) {
-    if (playertype > BJ_DEALER) {
-        if (BJ_Games[playerid][BJ_PlayerTextdraws][e_BJ_TEXTDRAWS:playertype] != INVALID_PLAYER_TEXT_ID) {
+    if (playertype == BJ_DEALER) {
+        return 0;
+    }
+    new Float:newX = 320.000000 + BJ_CARDS_X_OFFSETS[playertype]
+    if (BJ_Games[playerid][BJ_PlayerTextdraws][e_BJ_TEXTDRAWS:playertype] != INVALID_PLAYER_TEXT_ID) {
+        new Float:x, Float:y;
+        PlayerTextDrawGetPos(playerid, BJ_Games[playerid][BJ_PlayerTextdraws][e_BJ_TEXTDRAWS:playertype], x, y);
+        if (x != newX) {
+            BJ_UpdateScoreTD(playerid, playertype, BJ_Games[playerid][BJ_Scores][playertype]);
+            return 0;
+        } else {
             PlayerTextDrawHide(playerid, BJ_Games[playerid][BJ_PlayerTextdraws][e_BJ_TEXTDRAWS:playertype]);
             PlayerTextDrawDestroy(playerid, BJ_Games[playerid][BJ_PlayerTextdraws][e_BJ_TEXTDRAWS:playertype]);
         }
-        // new PlayerText:tdid;
-        new PlayerText:tdid = CreatePlayerTextDraw(playerid, 320.000000 + BJ_CARDS_X_OFFSETS[playertype], 255.000000, "You: %d", BJ_Games[playerid][BJ_Scores][playertype]);
-        BJ_Games[playerid][BJ_PlayerTextdraws][e_BJ_TEXTDRAWS:playertype] = tdid;
-        PlayerTextDrawFont(playerid, tdid, TEXT_DRAW_FONT_1);
-        PlayerTextDrawLetterSize(playerid, tdid, 0.500000, 2.000000);
-        PlayerTextDrawTextSize(playerid, tdid, 365.000000, 90.000000);
-        PlayerTextDrawSetOutline(playerid, tdid, 1);
-        PlayerTextDrawSetShadow(playerid, tdid, 0);
-        PlayerTextDrawAlignment(playerid, tdid, TEXT_DRAW_ALIGN_CENTER);
-        PlayerTextDrawColour(playerid, tdid, -1);
-        PlayerTextDrawBackgroundColour(playerid, tdid, 255);
-        PlayerTextDrawBoxColour(playerid, tdid, 0xAAAAAAAA);
-        PlayerTextDrawUseBox(playerid, tdid, playertype == BJ_Games[playerid][BJ_Turn]);
-        PlayerTextDrawSetProportional(playerid, tdid, true);
-        PlayerTextDrawSetSelectable(playerid, tdid, false);
-        PlayerTextDrawShow(playerid, tdid);
     }
+    // new PlayerText:tdid;
+    new PlayerText:tdid = CreatePlayerTextDraw(playerid, newX, 255.000000, "You: %d", BJ_Games[playerid][BJ_Scores][playertype]);
+    BJ_Games[playerid][BJ_PlayerTextdraws][e_BJ_TEXTDRAWS:playertype] = tdid;
+    PlayerTextDrawFont(playerid, tdid, TEXT_DRAW_FONT_1);
+    PlayerTextDrawLetterSize(playerid, tdid, 0.500000, 2.000000);
+    PlayerTextDrawTextSize(playerid, tdid, 365.000000, 90.000000);
+    PlayerTextDrawSetOutline(playerid, tdid, 1);
+    PlayerTextDrawSetShadow(playerid, tdid, 0);
+    PlayerTextDrawAlignment(playerid, tdid, TEXT_DRAW_ALIGN_CENTER);
+    PlayerTextDrawColour(playerid, tdid, -1);
+    PlayerTextDrawBackgroundColour(playerid, tdid, 255);
+    PlayerTextDrawBoxColour(playerid, tdid, 0xAAAAAAAA);
+    PlayerTextDrawUseBox(playerid, tdid, playertype == BJ_Games[playerid][BJ_Turn]);
+    PlayerTextDrawSetProportional(playerid, tdid, true);
+    PlayerTextDrawSetSelectable(playerid, tdid, false);
+    PlayerTextDrawShow(playerid, tdid);
+    return 0;
 }
 
 // Отрисовка карт у заданного игрока
@@ -636,6 +680,7 @@ stock BJ_DrawPlayerButtons(playerid) {
     return 1;
 }
 
+// Команда для старта игры "/bj [сумма]"
 cmd:bj(playerid, args[]) {
     if (BJ_Games[playerid][BJ_IsActive]) {
         SendClientMessage(playerid, 0xFFFFFFFF, "Игра уже идет!");
@@ -673,4 +718,18 @@ hook OnPlayerClickPlayerTD(playerid, PlayerText:playertextid) {
         BJ_Split(playerid);
     }
     return 0;
+}
+
+hook OnPlayerDisconnect(playerid, reason) {
+    if (BJ_Games[playerid][BJ_IsActive]) {
+        BJ_HideTable(playerid);
+    }
+    return 1;
+}
+
+hook OnPlayerDeath(playerid, killerid, WEAPON:reason) {
+    if (BJ_Games[playerid][BJ_IsActive]) {
+        BJ_HideTable(playerid);
+    }
+    return 1;
 }
