@@ -10,6 +10,7 @@
 #define INVALID_PLAYER_TEXT_ID PlayerText:-1
 #define CARD_BACK_SPRITE_NAME "LD_CARD:cdback"
 #define CARD_STACK_SIZE 52 // Размер колоды
+#define CARD_BACK_VALUE 52 // Значение для перевернутой карты
 #define CARD_SET_SIZE 13 // Кол-во карт в пределах одной масти
 #define BJ_MAX_HAND_SIZE 21 // Макс число карт в руке (худший сценарий)
 #define BJ_DEALER_STAYS_ON 17 // На каком количестве очков останавливается дилер
@@ -71,7 +72,6 @@ stock GetPlayingCardSpriteName(name[], value, set) {
         return 0;
     }
     format(name, MAX_CARD_SPRITE_LEN, "LD_CARD:cd%d%c", value + 1, setLetter);
-    // print(name);
     return 0;
 }
 
@@ -98,45 +98,43 @@ enum e_BJ_TEXTDRAWS {
     BJ_PLAYER_TEXTDRAWS_AMOUNT
 };
 
+// Информация об отдельной партии
 enum E_BJ_GAME {
-    BJ_DealerHand[BJ_MAX_HAND_SIZE], // Карты дилера
-    BJ_PlayerHand[BJ_MAX_HAND_SIZE], // Карты игрока
-    BJ_PlayerFirstHand[BJ_MAX_HAND_SIZE], // Карты игрока (после сплита)
-    BJ_PlayerSecondHand[BJ_MAX_HAND_SIZE], // Карты игрока (после сплита)
     BJ_CardsAmount[BJ_PLAYERS_AMOUNT], // Кол-во карт у игроков
     BJ_Scores[BJ_PLAYERS_AMOUNT], // Очки игроков
     bool:BJ_IsActive, // Статус игры
     bool:BJ_IsControlsActive, // Статус курсора у игрока
     PlayerText:BJ_PlayerTextdraws[BJ_PLAYER_TEXTDRAWS_AMOUNT], // Текстдравы (кроме карт)
-    PlayerText:BJ_DealerCardsTDs[BJ_MAX_HAND_SIZE], // Текстдравы карт дилера
-    PlayerText:BJ_PlayerCardsTDs[BJ_MAX_HAND_SIZE], // Текстдравы карт игрока
-    PlayerText:BJ_PlayerFirstCardsTDs[BJ_MAX_HAND_SIZE], // Текстдравы карт игрока (после сплита)
-    PlayerText:BJ_PlayerSecondCardsTDs[BJ_MAX_HAND_SIZE], // Текстдравы карт игрока (после сплита)
     BJ_Stakes[3], // Ставки 
     e_BJ_PLAYERS:BJ_Turn // Чей ход?
 };
 
 new
-    BJ_Games[MAX_PLAYERS][E_BJ_GAME];
+    BJ_Games[MAX_PLAYERS][E_BJ_GAME],
+    BJ_Hands[MAX_PLAYERS][BJ_PLAYERS_AMOUNT][BJ_MAX_HAND_SIZE],
+    PlayerText:BJ_CardsTDs[MAX_PLAYERS][BJ_PLAYERS_AMOUNT][BJ_MAX_HAND_SIZE];
 
 // Начало игры, инициализация
 stock BJ_StartGame(playerid, stake) {
     BJ_Games[playerid][BJ_Stakes] = {0, 0, 0};
     BJ_Games[playerid][BJ_Stakes][0] = stake;
     BJ_Games[playerid][BJ_Turn] = BJ_PLAYER;
+
     for (new j = 0; j < 2; j++) {
-        BJ_Games[playerid][BJ_DealerHand][j] = CARD_STACK_SIZE;
-        BJ_Games[playerid][BJ_PlayerHand][j] = CARD_STACK_SIZE;
+        BJ_Hands[playerid][BJ_DEALER][j] = CARD_BACK_VALUE;
+        BJ_Hands[playerid][BJ_PLAYER][j] = CARD_BACK_VALUE;
     }
-    for (new i = 0; i < BJ_MAX_HAND_SIZE; i++) {
-        BJ_Games[playerid][BJ_DealerCardsTDs][i] = INVALID_PLAYER_TEXT_ID;
-        BJ_Games[playerid][BJ_PlayerCardsTDs][i] = INVALID_PLAYER_TEXT_ID;
-        BJ_Games[playerid][BJ_PlayerFirstCardsTDs][i] = INVALID_PLAYER_TEXT_ID;
-        BJ_Games[playerid][BJ_PlayerSecondCardsTDs][i] = INVALID_PLAYER_TEXT_ID;
+
+    for (new e_BJ_PLAYERS:i = BJ_DEALER; i < BJ_PLAYERS_AMOUNT; i++) {
+        for (new j = 0; j < BJ_MAX_HAND_SIZE; j++) {
+            BJ_CardsTDs[playerid][i][j] = INVALID_PLAYER_TEXT_ID;
+        }
     }
+    
     for (new e_BJ_TEXTDRAWS:i = BJ_DEALER_SCORE_TD; i < BJ_PLAYER_TEXTDRAWS_AMOUNT; i++) {
         BJ_Games[playerid][BJ_PlayerTextdraws][i] = INVALID_PLAYER_TEXT_ID;
     }
+
     BJ_DrawTable(playerid);
     BJ_Games[playerid][BJ_CardsAmount] = {2, 2, 0, 0};
     BJ_Games[playerid][BJ_Scores] = {0, 0, 0, 0};
@@ -154,6 +152,7 @@ stock BJ_DrawTable(playerid) {
     BJ_DrawPlayerButtons(playerid);
 }
 
+// Активна ли игра для заданного игрока?
 stock BJ_DoesGameExist(playerid) {
     return BJ_Games[playerid][BJ_IsActive];
 }
@@ -246,16 +245,7 @@ stock BJ_UpdateSum(playerid, e_BJ_PLAYERS:playertype) {
     new bool:isAce = false;
     for (new i = 0; i < BJ_Games[playerid][BJ_CardsAmount][playertype]; i++) {
         new cardidx;
-        switch (playertype) {
-            case BJ_DEALER:
-                cardidx = BJ_Games[playerid][BJ_DealerHand][i];
-            case BJ_PLAYER:
-                cardidx = BJ_Games[playerid][BJ_PlayerHand][i];
-            case BJ_PLAYER_SPLIT_FIRST:
-                cardidx = BJ_Games[playerid][BJ_PlayerFirstHand][i];
-            case BJ_PLAYER_SPLIT_SECOND:
-                cardidx = BJ_Games[playerid][BJ_PlayerSecondHand][i];
-        }
+        cardidx = BJ_Hands[playerid][playertype][i];
         if (cardidx / 13 > 3) {
             continue;
         }
@@ -289,18 +279,7 @@ public BJ_FlipCard(playerid, e_BJ_PLAYERS:playertype, cardidx) {
     if (!BJ_DoesGameExist(playerid)) {
         return 1;
     }
-    switch (playertype) {
-        case BJ_DEALER:
-            BJ_Games[playerid][BJ_DealerHand][cardidx] = random(CARD_STACK_SIZE);
-        case BJ_PLAYER:
-            BJ_Games[playerid][BJ_PlayerHand][cardidx] = random(CARD_STACK_SIZE);
-        case BJ_PLAYER_SPLIT_FIRST:
-            BJ_Games[playerid][BJ_PlayerFirstHand][cardidx] = random(CARD_STACK_SIZE);
-        case BJ_PLAYER_SPLIT_SECOND:
-            BJ_Games[playerid][BJ_PlayerSecondHand][cardidx] = random(CARD_STACK_SIZE);
-        default:
-            return 1;
-    }
+    BJ_Hands[playerid][playertype][cardidx] = random(CARD_STACK_SIZE);
     BJ_Render_Cards(playerid, playertype);
     BJ_UpdateSum(playerid, playertype);
     if (!(playertype == BJ_DEALER && cardidx == 0))
@@ -362,18 +341,7 @@ stock BJ_EndPlayerTurn(playerid, e_BJ_PLAYERS:playertype) {
 // Добавление карты в руку
 forward BJ_AddCard(playerid, e_BJ_PLAYERS:playertype);
 public BJ_AddCard(playerid, e_BJ_PLAYERS:playertype) {
-    switch (playertype) {
-        case BJ_DEALER:
-            BJ_Games[playerid][BJ_DealerHand][BJ_Games[playerid][BJ_CardsAmount][playertype]++] = random(CARD_STACK_SIZE);
-        case BJ_PLAYER:
-            BJ_Games[playerid][BJ_PlayerHand][BJ_Games[playerid][BJ_CardsAmount][playertype]++] = random(CARD_STACK_SIZE);
-        case BJ_PLAYER_SPLIT_FIRST:
-            BJ_Games[playerid][BJ_PlayerFirstHand][BJ_Games[playerid][BJ_CardsAmount][playertype]++] = random(CARD_STACK_SIZE);
-        case BJ_PLAYER_SPLIT_SECOND:
-            BJ_Games[playerid][BJ_PlayerSecondHand][BJ_Games[playerid][BJ_CardsAmount][playertype]++] = random(CARD_STACK_SIZE);
-        default:
-            return 1;
-    }
+    BJ_Hands[playerid][playertype][BJ_Games[playerid][BJ_CardsAmount][playertype]++] = random(CARD_STACK_SIZE);
     BJ_Render_Cards(playerid, playertype);
     BJ_UpdateSum(playerid, playertype);
     return 0;
@@ -431,7 +399,7 @@ public BJ_Split(playerid) {
         SendClientMessage(playerid, 0xFFFFFFFF, "Разделить карты можно только на первом ходу!");
         return 1;
     }
-    if (BJ_GetCardValue(BJ_Games[playerid][BJ_PlayerHand][0]) != BJ_GetCardValue(BJ_Games[playerid][BJ_PlayerHand][1])) {
+    if (BJ_GetCardValue(BJ_Hands[playerid][BJ_PLAYER][0]) != BJ_GetCardValue(BJ_Hands[playerid][BJ_PLAYER][1])) {
         SendClientMessage(playerid, 0xFFFFFFFF, "Разделить можно только карты одинакового достоинства!");
         return 1;
     }
@@ -439,10 +407,10 @@ public BJ_Split(playerid) {
         SendClientMessage(playerid, 0xFFFFFFFF, "Недостаточно средств!");
         return 1;
     }
-    BJ_Games[playerid][BJ_PlayerFirstHand][BJ_Games[playerid][BJ_CardsAmount][BJ_PLAYER_SPLIT_FIRST]++] = BJ_Games[playerid][BJ_PlayerHand][0];
-    BJ_Games[playerid][BJ_PlayerSecondHand][BJ_Games[playerid][BJ_CardsAmount][BJ_PLAYER_SPLIT_SECOND]++] = BJ_Games[playerid][BJ_PlayerHand][1];
-    BJ_Games[playerid][BJ_PlayerFirstHand][BJ_Games[playerid][BJ_CardsAmount][BJ_PLAYER_SPLIT_FIRST]++] = CARD_STACK_SIZE;
-    BJ_Games[playerid][BJ_PlayerSecondHand][BJ_Games[playerid][BJ_CardsAmount][BJ_PLAYER_SPLIT_SECOND]++] = CARD_STACK_SIZE;
+    BJ_Hands[playerid][BJ_PLAYER_SPLIT_FIRST][BJ_Games[playerid][BJ_CardsAmount][BJ_PLAYER_SPLIT_FIRST]++] = BJ_Hands[playerid][BJ_PLAYER][0];
+    BJ_Hands[playerid][BJ_PLAYER_SPLIT_SECOND][BJ_Games[playerid][BJ_CardsAmount][BJ_PLAYER_SPLIT_SECOND]++] = BJ_Hands[playerid][BJ_PLAYER][1];
+    BJ_Hands[playerid][BJ_PLAYER_SPLIT_FIRST][BJ_Games[playerid][BJ_CardsAmount][BJ_PLAYER_SPLIT_FIRST]++] = CARD_BACK_VALUE;
+    BJ_Hands[playerid][BJ_PLAYER_SPLIT_SECOND][BJ_Games[playerid][BJ_CardsAmount][BJ_PLAYER_SPLIT_SECOND]++] = CARD_BACK_VALUE;
     BJ_Games[playerid][BJ_Stakes][1] = BJ_Games[playerid][BJ_Stakes][0];
     BJ_Games[playerid][BJ_Stakes][2] = BJ_Games[playerid][BJ_Stakes][0];
     
@@ -494,26 +462,9 @@ stock PlayerText:BJ_DrawCard(playerid, Float:x, Float:y, const name[]) {
 
 // Удаление текстдравов карт у заданного игрока
 stock BJ_DeleteCards(playerid, e_BJ_PLAYERS:playertype) {
-    if (playertype == BJ_DEALER) {
-        for (new i = 0; i < BJ_Games[playerid][BJ_CardsAmount][BJ_DEALER]; i++) {
-            PlayerTextDrawHide(playerid, BJ_Games[playerid][BJ_DealerCardsTDs][i]);
-            PlayerTextDrawDestroy(playerid, BJ_Games[playerid][BJ_DealerCardsTDs][i]);
-        }
-    } else if (playertype == BJ_PLAYER) {
-        for (new i = 0; i < BJ_Games[playerid][BJ_CardsAmount][BJ_PLAYER]; i++) {
-            PlayerTextDrawHide(playerid, BJ_Games[playerid][BJ_PlayerCardsTDs][i]);
-            PlayerTextDrawDestroy(playerid, BJ_Games[playerid][BJ_PlayerCardsTDs][i]);
-        }
-    } else if (playertype == BJ_PLAYER_SPLIT_FIRST) {
-        for (new i = 0; i < BJ_Games[playerid][BJ_CardsAmount][BJ_PLAYER_SPLIT_FIRST]; i++) {
-            PlayerTextDrawHide(playerid, BJ_Games[playerid][BJ_PlayerFirstCardsTDs][i]);
-            PlayerTextDrawDestroy(playerid, BJ_Games[playerid][BJ_PlayerFirstCardsTDs][i]);
-        }
-    } else if (playertype == BJ_PLAYER_SPLIT_SECOND) {
-        for (new i = 0; i < BJ_Games[playerid][BJ_CardsAmount][BJ_PLAYER_SPLIT_SECOND]; i++) {
-            PlayerTextDrawHide(playerid, BJ_Games[playerid][BJ_PlayerSecondCardsTDs][i]);
-            PlayerTextDrawDestroy(playerid, BJ_Games[playerid][BJ_PlayerSecondCardsTDs][i]);
-        }
+    for (new i = 0; i < BJ_Games[playerid][BJ_CardsAmount][playertype]; i++) {
+        PlayerTextDrawHide(playerid, BJ_CardsTDs[playerid][playertype][i]);
+        PlayerTextDrawDestroy(playerid, BJ_CardsTDs[playerid][playertype][i]);
     }
 }
 
@@ -562,33 +513,12 @@ stock BJ_Render_Cards(playerid, e_BJ_PLAYERS:playertype) {
     new PlayerText:tdid;
     for (new j = 0; j < amt; j++) {
         new card_name[MAX_CARD_NAME_LEN], card_id;
-        switch (playertype) {
-            case BJ_DEALER:
-                card_id = BJ_Games[playerid][BJ_DealerHand][j];
-            case BJ_PLAYER:
-                card_id = BJ_Games[playerid][BJ_PlayerHand][j];
-            case BJ_PLAYER_SPLIT_FIRST:
-                card_id = BJ_Games[playerid][BJ_PlayerFirstHand][j];
-            case BJ_PLAYER_SPLIT_SECOND:
-                card_id = BJ_Games[playerid][BJ_PlayerSecondHand][j];
-            default:
-                printf("WTF: Player type %d", playertype);
-        }
+        card_id = BJ_Hands[playerid][playertype][j];
         GetPlayingCardSpriteName(card_name, card_id % 13, card_id / 13);
         tdid = BJ_DrawCard(playerid, 320.0 - x_offset + BJ_CARDS_X_OFFSETS[playertype], BJ_CARDS_Y_OFFSETS[playertype], card_name);
         // printf("card tdid: %d", tdid);
-        switch (playertype) {
-            case BJ_DEALER:
-                BJ_Games[playerid][BJ_DealerCardsTDs][j] = tdid;
-            case BJ_PLAYER:
-                BJ_Games[playerid][BJ_PlayerCardsTDs][j] = tdid;
-            case BJ_PLAYER_SPLIT_FIRST:
-                BJ_Games[playerid][BJ_PlayerFirstCardsTDs][j] = tdid;
-            case BJ_PLAYER_SPLIT_SECOND:
-                BJ_Games[playerid][BJ_PlayerSecondCardsTDs][j] = tdid;
-            default:
-                printf("WTF: Player type %d", playertype);
-        }
+
+        BJ_CardsTDs[playerid][playertype][j] = tdid;
         x_offset -= 50;
     }
     return 0;
