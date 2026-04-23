@@ -259,7 +259,6 @@ stock BJ_UpdateSum(playerid, e_BJ_PLAYERS:playertype) {
         sum += 10;
     }
     BJ_Games[playerid][BJ_Scores][playertype] = sum;
-    // Update tds?
     BJ_UpdateScoreTD(playerid, playertype, sum);
 }
 
@@ -307,6 +306,7 @@ public BJ_SetControlsActive(playerid, bool:status) {
 
 // Переход хода от игрока к дилеру
 stock BJ_SwitchTurn(playerid, e_BJ_PLAYERS:playertype) {
+    new e_BJ_PLAYERS:oldturn = BJ_Games[playerid][BJ_Turn];
     BJ_Games[playerid][BJ_Turn] = playertype;
     if (playertype == BJ_DEALER) {
         BJ_SetControlsActive(playerid, false);
@@ -314,10 +314,8 @@ stock BJ_SwitchTurn(playerid, e_BJ_PLAYERS:playertype) {
     } else {
         BJ_ProcessDraw(playerid, playertype);
     }
-    if (playertype > BJ_PLAYER) {
-        BJ_Render_Score(playerid, BJ_PLAYER_SPLIT_FIRST);
-        BJ_Render_Score(playerid, BJ_PLAYER_SPLIT_SECOND);
-    }
+    BJ_Render_Score(playerid, oldturn);
+    BJ_Render_Score(playerid, playertype);
 }
 
 // Действия при завершении хода игрока
@@ -470,14 +468,17 @@ stock BJ_DeleteCards(playerid, e_BJ_PLAYERS:playertype) {
 
 // Отрисовка текстрава с очками
 stock BJ_Render_Score(playerid, e_BJ_PLAYERS:playertype) {
+    /*
     if (playertype == BJ_DEALER) {
         return 0;
     }
+    */
     new Float:newX = 320.000000 + BJ_CARDS_X_OFFSETS[playertype];
+    new Float:newY = BJ_CARDS_Y_OFFSETS[playertype] - 35.0;
     if (BJ_Games[playerid][BJ_PlayerTextdraws][e_BJ_TEXTDRAWS:playertype] != INVALID_PLAYER_TEXT_ID) {
         new Float:x, Float:y;
         PlayerTextDrawGetPos(playerid, BJ_Games[playerid][BJ_PlayerTextdraws][e_BJ_TEXTDRAWS:playertype], x, y);
-        if (x != newX) {
+        if (!(x == newX && y == newY)) {
             BJ_UpdateScoreTD(playerid, playertype, BJ_Games[playerid][BJ_Scores][playertype]);
             return 0;
         } else {
@@ -485,12 +486,18 @@ stock BJ_Render_Score(playerid, e_BJ_PLAYERS:playertype) {
             PlayerTextDrawDestroy(playerid, BJ_Games[playerid][BJ_PlayerTextdraws][e_BJ_TEXTDRAWS:playertype]);
         }
     }
-    // new PlayerText:tdid;
-    new PlayerText:tdid = CreatePlayerTextDraw(playerid, newX, 255.000000, "You: %d", BJ_Games[playerid][BJ_Scores][playertype]);
+    new PlayerText:tdid = CreatePlayerTextDraw(
+        playerid,
+        newX,
+        newY,
+        "%s: %d",
+        playertype == BJ_DEALER ? "Dealer" : "You",
+        BJ_Games[playerid][BJ_Scores][playertype]
+    );
     BJ_Games[playerid][BJ_PlayerTextdraws][e_BJ_TEXTDRAWS:playertype] = tdid;
     PlayerTextDrawFont(playerid, tdid, TEXT_DRAW_FONT_1);
     PlayerTextDrawLetterSize(playerid, tdid, 0.500000, 2.000000);
-    PlayerTextDrawTextSize(playerid, tdid, 365.000000, 90.000000);
+    PlayerTextDrawTextSize(playerid, tdid, 365.000000, 100.000000);
     PlayerTextDrawSetOutline(playerid, tdid, 1);
     PlayerTextDrawSetShadow(playerid, tdid, 0);
     PlayerTextDrawAlignment(playerid, tdid, TEXT_DRAW_ALIGN_CENTER);
