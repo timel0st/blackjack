@@ -9,14 +9,14 @@
 
 #define INVALID_PLAYER_TEXT_ID PlayerText:-1
 #define CARD_BACK_SPRITE_NAME "LD_CARD:cdback"
-#define CARD_STACK_SIZE 52 // Размер колоды
-#define CARD_BACK_VALUE 52 // Значение для перевернутой карты
-#define CARD_SET_SIZE 13 // Кол-во карт в пределах одной масти
-#define BJ_MAX_HAND_SIZE 21 // Макс число карт в руке (худший сценарий)
-#define BJ_DEALER_STAYS_ON 17 // На каком количестве очков останавливается дилер
-#define BJ_MIN_STAKE 100 // Минимальная ставка
-#define BJ_MAX_STAKE 100000 // Максимальная ставка
-#define BJ_DRAW_DELAY_MS 1000 // Задержка между вытягиваниями карт, в мс
+#define CARD_STACK_SIZE 52 // Р Р°Р·РјРµСЂ РєРѕР»РѕРґС‹
+#define CARD_BACK_VALUE 52 // Р—РЅР°С‡РµРЅРёРµ РґР»СЏ РїРµСЂРµРІРµСЂРЅСѓС‚РѕР№ РєР°СЂС‚С‹
+#define CARD_SET_SIZE 13 // РљРѕР»-РІРѕ РєР°СЂС‚ РІ РїСЂРµРґРµР»Р°С… РѕРґРЅРѕР№ РјР°СЃС‚Рё
+#define BJ_MAX_HAND_SIZE 21 // РњР°РєСЃ С‡РёСЃР»Рѕ РєР°СЂС‚ РІ СЂСѓРєРµ (С…СѓРґС€РёР№ СЃС†РµРЅР°СЂРёР№)
+#define BJ_DEALER_STAYS_ON 17 // РќР° РєР°РєРѕРј РєРѕР»РёС‡РµСЃС‚РІРµ РѕС‡РєРѕРІ РѕСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ РґРёР»РµСЂ
+#define BJ_MIN_STAKE 100 // РњРёРЅРёРјР°Р»СЊРЅР°СЏ СЃС‚Р°РІРєР°
+#define BJ_MAX_STAKE 100000 // РњР°РєСЃРёРјР°Р»СЊРЅР°СЏ СЃС‚Р°РІРєР°
+#define BJ_DRAW_DELAY_MS 1000 // Р—Р°РґРµСЂР¶РєР° РјРµР¶РґСѓ РІС‹С‚СЏРіРёРІР°РЅРёСЏРјРё РєР°СЂС‚, РІ РјСЃ
 
 enum e_CARD_SETS { 
     CARD_SET_SPADES, 
@@ -48,9 +48,9 @@ enum E_CARD_SPRITES {
     CardSets: E_CARD_SET
 }
 
-new const Float:BJ_BLACKJACK_MULTIPLIER = 1.5; // Множитель выигрыша при блекджеке
+new const Float:BJ_BLACKJACK_MULTIPLIER = 1.5; // РњРЅРѕР¶РёС‚РµР»СЊ РІС‹РёРіСЂС‹С€Р° РїСЂРё Р±Р»РµРєРґР¶РµРєРµ
 
-// Возвращает название для заданной карты
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ РЅР°Р·РІР°РЅРёРµ РґР»СЏ Р·Р°РґР°РЅРЅРѕР№ РєР°СЂС‚С‹
 stock GetPlayingCardSpriteName(name[], value, set) {
     new setLetter;
 
@@ -98,15 +98,15 @@ enum e_BJ_TEXTDRAWS {
     BJ_PLAYER_TEXTDRAWS_AMOUNT
 };
 
-// Информация об отдельной партии
+// РРЅС„РѕСЂРјР°С†РёСЏ РѕР± РѕС‚РґРµР»СЊРЅРѕР№ РїР°СЂС‚РёРё
 enum E_BJ_GAME {
-    BJ_CardsAmount[BJ_PLAYERS_AMOUNT], // Кол-во карт у игроков
-    BJ_Scores[BJ_PLAYERS_AMOUNT], // Очки игроков
-    bool:BJ_IsActive, // Статус игры
-    bool:BJ_IsControlsActive, // Статус курсора у игрока
-    PlayerText:BJ_PlayerTextdraws[BJ_PLAYER_TEXTDRAWS_AMOUNT], // Текстдравы (кроме карт)
-    BJ_Stakes[3], // Ставки 
-    e_BJ_PLAYERS:BJ_Turn // Чей ход?
+    BJ_CardsAmount[BJ_PLAYERS_AMOUNT], // РљРѕР»-РІРѕ РєР°СЂС‚ Сѓ РёРіСЂРѕРєРѕРІ
+    BJ_Scores[BJ_PLAYERS_AMOUNT], // РћС‡РєРё РёРіСЂРѕРєРѕРІ
+    bool:BJ_IsActive, // РЎС‚Р°С‚СѓСЃ РёРіСЂС‹
+    bool:BJ_IsControlsActive, // РЎС‚Р°С‚СѓСЃ РєСѓСЂСЃРѕСЂР° Сѓ РёРіСЂРѕРєР°
+    PlayerText:BJ_PlayerTextdraws[BJ_PLAYER_TEXTDRAWS_AMOUNT], // РўРµРєСЃС‚РґСЂР°РІС‹ (РєСЂРѕРјРµ РєР°СЂС‚)
+    BJ_Stakes[3], // РЎС‚Р°РІРєРё 
+    e_BJ_PLAYERS:BJ_Turn // Р§РµР№ С…РѕРґ?
 };
 
 new
@@ -114,7 +114,7 @@ new
     BJ_Hands[MAX_PLAYERS][BJ_PLAYERS_AMOUNT][BJ_MAX_HAND_SIZE],
     PlayerText:BJ_CardsTDs[MAX_PLAYERS][BJ_PLAYERS_AMOUNT][BJ_MAX_HAND_SIZE];
 
-// Начало игры, инициализация
+// РќР°С‡Р°Р»Рѕ РёРіСЂС‹, РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ
 stock BJ_StartGame(playerid, stake) {
     BJ_Games[playerid][BJ_Stakes] = {0, 0, 0};
     BJ_Games[playerid][BJ_Stakes][0] = stake;
@@ -147,17 +147,17 @@ stock BJ_StartGame(playerid, stake) {
     SetTimerEx("BJ_FlipCard", 3*BJ_DRAW_DELAY_MS, false, "iii", playerid, BJ_PLAYER, 1);
 }
 
-// Отрисовка текстдравов для игры
+// РћС‚СЂРёСЃРѕРІРєР° С‚РµРєСЃС‚РґСЂР°РІРѕРІ РґР»СЏ РёРіСЂС‹
 stock BJ_DrawTable(playerid) {
     BJ_DrawPlayerButtons(playerid);
 }
 
-// Активна ли игра для заданного игрока?
+// РђРєС‚РёРІРЅР° Р»Рё РёРіСЂР° РґР»СЏ Р·Р°РґР°РЅРЅРѕРіРѕ РёРіСЂРѕРєР°?
 stock BJ_DoesGameExist(playerid) {
     return BJ_Games[playerid][BJ_IsActive];
 }
 
-// Скрытие текстдравов, перевод в неактивное состояние
+// РЎРєСЂС‹С‚РёРµ С‚РµРєСЃС‚РґСЂР°РІРѕРІ, РїРµСЂРµРІРѕРґ РІ РЅРµР°РєС‚РёРІРЅРѕРµ СЃРѕСЃС‚РѕСЏРЅРёРµ
 forward BJ_HideTable(playerid);
 public BJ_HideTable(playerid) {
     for (new e_BJ_TEXTDRAWS:i = BJ_DEALER_SCORE_TD; i < BJ_PLAYER_TEXTDRAWS_AMOUNT; i++) {
@@ -179,9 +179,9 @@ stock BJ_CountHand(playerid, e_BJ_PLAYERS:hand) {
     new isPlayerBJ = (player_score == 21 && BJ_Games[playerid][BJ_CardsAmount][hand] == 2);
     new isDealerBJ = (dealer_score == 21 && BJ_Games[playerid][BJ_CardsAmount][BJ_DEALER] == 2);
     if (player_score > 21 || (player_score < dealer_score && dealer_score <= 21) || (isDealerBJ && !isPlayerBJ)) {
-        SendClientMessage(playerid, 0xFFFFFFFF, "Вы проиграли!");
+        SendClientMessage(playerid, 0xFFFFFFFF, "Р’С‹ РїСЂРѕРёРіСЂР°Р»Рё!");
     } else if (player_score == dealer_score && isPlayerBJ == isDealerBJ) {
-        SendClientMessage(playerid, 0xFFFFFFFF, "Ничья! (+%d$)", stake);
+        SendClientMessage(playerid, 0xFFFFFFFF, "РќРёС‡СЊСЏ! (+%d$)", stake);
         AddPlayerMoney(playerid, stake);
     } else if (isPlayerBJ) {
         new Float:win = float(stake)*BJ_BLACKJACK_MULTIPLIER;
@@ -190,12 +190,12 @@ stock BJ_CountHand(playerid, e_BJ_PLAYERS:hand) {
         AddPlayerMoney(playerid, stake);
     } else {
         stake *= 2;
-        SendClientMessage(playerid, 0xFFFFFFFF, "Вы победили! (+%d$)", stake);
+        SendClientMessage(playerid, 0xFFFFFFFF, "Р’С‹ РїРѕР±РµРґРёР»Рё! (+%d$)", stake);
         AddPlayerMoney(playerid, stake);
     }
 }
 
-// Завершение игры, подсчет результата
+// Р—Р°РІРµСЂС€РµРЅРёРµ РёРіСЂС‹, РїРѕРґСЃС‡РµС‚ СЂРµР·СѓР»СЊС‚Р°С‚Р°
 stock BJ_EndGame(playerid) {
     if (BJ_Games[playerid][BJ_Scores][BJ_PLAYER_SPLIT_FIRST] > 0) {
         BJ_CountHand(playerid, BJ_PLAYER_SPLIT_FIRST);
@@ -206,7 +206,7 @@ stock BJ_EndGame(playerid) {
     SetTimerEx("BJ_HideTable", 2000, false, "i", playerid);
 }
 
-// Обновление текстдрава с очками
+// РћР±РЅРѕРІР»РµРЅРёРµ С‚РµРєСЃС‚РґСЂР°РІР° СЃ РѕС‡РєР°РјРё
 stock BJ_UpdateScoreTD(playerid, e_BJ_PLAYERS:playertype, score) {
     PlayerTextDrawSetString(
         playerid,
@@ -217,12 +217,12 @@ stock BJ_UpdateScoreTD(playerid, e_BJ_PLAYERS:playertype, score) {
     );
 }
 
-// Получение достоинства карты
+// РџРѕР»СѓС‡РµРЅРёРµ РґРѕСЃС‚РѕРёРЅСЃС‚РІР° РєР°СЂС‚С‹
 stock BJ_GetCardValue(cardidx) {
     return min((cardidx % 13) + 1, 10);
 }
 
-// Обработка логики после добавления новой карты
+// РћР±СЂР°Р±РѕС‚РєР° Р»РѕРіРёРєРё РїРѕСЃР»Рµ РґРѕР±Р°РІР»РµРЅРёСЏ РЅРѕРІРѕР№ РєР°СЂС‚С‹
 stock BJ_ProcessDraw(playerid, e_BJ_PLAYERS:playertype) {
     new sum = BJ_Games[playerid][BJ_Scores][playertype];
     if (playertype == BJ_DEALER) {
@@ -239,7 +239,7 @@ stock BJ_ProcessDraw(playerid, e_BJ_PLAYERS:playertype) {
     return sum;
 }
 
-// Пересчет суммы очков 
+// РџРµСЂРµСЃС‡РµС‚ СЃСѓРјРјС‹ РѕС‡РєРѕРІ 
 stock BJ_UpdateSum(playerid, e_BJ_PLAYERS:playertype) {
     new sum = 0;
     new bool:isAce = false;
@@ -262,7 +262,7 @@ stock BJ_UpdateSum(playerid, e_BJ_PLAYERS:playertype) {
     BJ_UpdateScoreTD(playerid, playertype, sum);
 }
 
-// Ход дилера
+// РҐРѕРґ РґРёР»РµСЂР°
 stock BJ_DealerTurn(playerid) {
     new dealerScore = BJ_Games[playerid][BJ_Scores][BJ_DEALER];
     if (dealerScore < BJ_DEALER_STAYS_ON) {
@@ -272,7 +272,7 @@ stock BJ_DealerTurn(playerid) {
     }
 }
 
-// "Переворот" карты
+// "РџРµСЂРµРІРѕСЂРѕС‚" РєР°СЂС‚С‹
 forward BJ_FlipCard(playerid, e_BJ_PLAYERS:playertype, cardidx);
 public BJ_FlipCard(playerid, e_BJ_PLAYERS:playertype, cardidx) {
     if (!BJ_DoesGameExist(playerid)) {
@@ -293,7 +293,7 @@ public BJ_FlipCard(playerid, e_BJ_PLAYERS:playertype, cardidx) {
     return 0;
 }
 
-// Отображение курсора для нажатия текстдравов
+// РћС‚РѕР±СЂР°Р¶РµРЅРёРµ РєСѓСЂСЃРѕСЂР° РґР»СЏ РЅР°Р¶Р°С‚РёСЏ С‚РµРєСЃС‚РґСЂР°РІРѕРІ
 forward BJ_SetControlsActive(playerid, bool:status);
 public BJ_SetControlsActive(playerid, bool:status) {
     BJ_Games[playerid][BJ_IsControlsActive] = status;
@@ -304,7 +304,7 @@ public BJ_SetControlsActive(playerid, bool:status) {
     }
 }
 
-// Переход хода от игрока к дилеру
+// РџРµСЂРµС…РѕРґ С…РѕРґР° РѕС‚ РёРіСЂРѕРєР° Рє РґРёР»РµСЂСѓ
 stock BJ_SwitchTurn(playerid, e_BJ_PLAYERS:playertype) {
     new e_BJ_PLAYERS:oldturn = BJ_Games[playerid][BJ_Turn];
     BJ_Games[playerid][BJ_Turn] = playertype;
@@ -318,7 +318,7 @@ stock BJ_SwitchTurn(playerid, e_BJ_PLAYERS:playertype) {
     BJ_Render_Score(playerid, playertype);
 }
 
-// Действия при завершении хода игрока
+// Р”РµР№СЃС‚РІРёСЏ РїСЂРё Р·Р°РІРµСЂС€РµРЅРёРё С…РѕРґР° РёРіСЂРѕРєР°
 stock BJ_EndPlayerTurn(playerid, e_BJ_PLAYERS:playertype) {
     switch (playertype) {
         case BJ_DEALER:
@@ -336,7 +336,7 @@ stock BJ_EndPlayerTurn(playerid, e_BJ_PLAYERS:playertype) {
 }
 
 
-// Добавление карты в руку
+// Р”РѕР±Р°РІР»РµРЅРёРµ РєР°СЂС‚С‹ РІ СЂСѓРєСѓ
 forward BJ_AddCard(playerid, e_BJ_PLAYERS:playertype);
 public BJ_AddCard(playerid, e_BJ_PLAYERS:playertype) {
     BJ_Hands[playerid][playertype][BJ_Games[playerid][BJ_CardsAmount][playertype]++] = random(CARD_STACK_SIZE);
@@ -345,7 +345,7 @@ public BJ_AddCard(playerid, e_BJ_PLAYERS:playertype) {
     return 0;
 }
 
-// Добор карты
+// Р”РѕР±РѕСЂ РєР°СЂС‚С‹
 forward BJ_Hit(playerid, e_BJ_PLAYERS:playertype);
 public BJ_Hit(playerid, e_BJ_PLAYERS:playertype) {
     if (!BJ_DoesGameExist(playerid)) {
@@ -356,7 +356,7 @@ public BJ_Hit(playerid, e_BJ_PLAYERS:playertype) {
     return 0;
 }
 
-// Завершение хода
+// Р—Р°РІРµСЂС€РµРЅРёРµ С…РѕРґР°
 forward BJ_Stay(playerid, e_BJ_PLAYERS:playertype);
 public BJ_Stay(playerid, e_BJ_PLAYERS:playertype) {
     if (!BJ_DoesGameExist(playerid)) {
@@ -367,18 +367,18 @@ public BJ_Stay(playerid, e_BJ_PLAYERS:playertype) {
 }
 
 
-// Удвоение ставки
+// РЈРґРІРѕРµРЅРёРµ СЃС‚Р°РІРєРё
 forward BJ_Double(playerid, e_BJ_PLAYERS:playertype);
 public BJ_Double(playerid, e_BJ_PLAYERS:playertype) {
     if (!BJ_DoesGameExist(playerid)) {
         return 1;
     }
     if (BJ_Games[playerid][BJ_CardsAmount][playertype] != 2) {
-        SendClientMessage(playerid, 0xFFFFFFFF, "Удвоить ставку можно только на первом ходу!");
+        SendClientMessage(playerid, 0xFFFFFFFF, "РЈРґРІРѕРёС‚СЊ СЃС‚Р°РІРєСѓ РјРѕР¶РЅРѕ С‚РѕР»СЊРєРѕ РЅР° РїРµСЂРІРѕРј С…РѕРґСѓ!");
         return 1;
     }
     if (!AddPlayerMoney(playerid, -BJ_Games[playerid][BJ_Stakes][playertype - BJ_PLAYER])) {
-        SendClientMessage(playerid, 0xFFFFFFFF, "Недостаточно средств!");
+        SendClientMessage(playerid, 0xFFFFFFFF, "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ СЃСЂРµРґСЃС‚РІ!");
         return 1;
     }
     BJ_Games[playerid][BJ_Stakes][playertype - BJ_PLAYER] *= 2;
@@ -387,22 +387,22 @@ public BJ_Double(playerid, e_BJ_PLAYERS:playertype) {
     return 0;
 }
 
-// Разделение карт
+// Р Р°Р·РґРµР»РµРЅРёРµ РєР°СЂС‚
 forward BJ_Split(playerid);
 public BJ_Split(playerid) {
     if (!BJ_DoesGameExist(playerid)) {
         return 1;
     }
     if (BJ_Games[playerid][BJ_CardsAmount][BJ_PLAYER] != 2) {
-        SendClientMessage(playerid, 0xFFFFFFFF, "Разделить карты можно только на первом ходу!");
+        SendClientMessage(playerid, 0xFFFFFFFF, "Р Р°Р·РґРµР»РёС‚СЊ РєР°СЂС‚С‹ РјРѕР¶РЅРѕ С‚РѕР»СЊРєРѕ РЅР° РїРµСЂРІРѕРј С…РѕРґСѓ!");
         return 1;
     }
     if (BJ_GetCardValue(BJ_Hands[playerid][BJ_PLAYER][0]) != BJ_GetCardValue(BJ_Hands[playerid][BJ_PLAYER][1])) {
-        SendClientMessage(playerid, 0xFFFFFFFF, "Разделить можно только карты одинакового достоинства!");
+        SendClientMessage(playerid, 0xFFFFFFFF, "Р Р°Р·РґРµР»РёС‚СЊ РјРѕР¶РЅРѕ С‚РѕР»СЊРєРѕ РєР°СЂС‚С‹ РѕРґРёРЅР°РєРѕРІРѕРіРѕ РґРѕСЃС‚РѕРёРЅСЃС‚РІР°!");
         return 1;
     }
     if (!AddPlayerMoney(playerid, -BJ_Games[playerid][BJ_Stakes][0])) {
-        SendClientMessage(playerid, 0xFFFFFFFF, "Недостаточно средств!");
+        SendClientMessage(playerid, 0xFFFFFFFF, "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ СЃСЂРµРґСЃС‚РІ!");
         return 1;
     }
     BJ_Hands[playerid][BJ_PLAYER_SPLIT_FIRST][BJ_Games[playerid][BJ_CardsAmount][BJ_PLAYER_SPLIT_FIRST]++] = BJ_Hands[playerid][BJ_PLAYER][0];
@@ -434,12 +434,12 @@ public BJ_Split(playerid) {
     return 0;
 }
 
-// Отступы по высоте для разных рук
+// РћС‚СЃС‚СѓРїС‹ РїРѕ РІС‹СЃРѕС‚Рµ РґР»СЏ СЂР°Р·РЅС‹С… СЂСѓРє
 new const Float:BJ_CARDS_Y_OFFSETS[4] = {100.0, 290.0, 290.0, 290.0};
-// Отступы по ширине для разных рук (от центра)
+// РћС‚СЃС‚СѓРїС‹ РїРѕ С€РёСЂРёРЅРµ РґР»СЏ СЂР°Р·РЅС‹С… СЂСѓРє (РѕС‚ С†РµРЅС‚СЂР°)
 new const Float:BJ_CARDS_X_OFFSETS[4] = {0.0, 0.0, -160.0, 160.0};
 
-// Отрисовка отдельной карты по заданным координатам
+// РћС‚СЂРёСЃРѕРІРєР° РѕС‚РґРµР»СЊРЅРѕР№ РєР°СЂС‚С‹ РїРѕ Р·Р°РґР°РЅРЅС‹Рј РєРѕРѕСЂРґРёРЅР°С‚Р°Рј
 stock PlayerText:BJ_DrawCard(playerid, Float:x, Float:y, const name[]) {
     new PlayerText:id = CreatePlayerTextDraw(playerid, x, y, name);
     PlayerTextDrawFont(playerid, id, TEXT_DRAW_FONT_SPRITE_DRAW);
@@ -458,7 +458,7 @@ stock PlayerText:BJ_DrawCard(playerid, Float:x, Float:y, const name[]) {
     return id;
 }
 
-// Удаление текстдравов карт у заданного игрока
+// РЈРґР°Р»РµРЅРёРµ С‚РµРєСЃС‚РґСЂР°РІРѕРІ РєР°СЂС‚ Сѓ Р·Р°РґР°РЅРЅРѕРіРѕ РёРіСЂРѕРєР°
 stock BJ_DeleteCards(playerid, e_BJ_PLAYERS:playertype) {
     for (new i = 0; i < BJ_Games[playerid][BJ_CardsAmount][playertype]; i++) {
         PlayerTextDrawHide(playerid, BJ_CardsTDs[playerid][playertype][i]);
@@ -466,7 +466,7 @@ stock BJ_DeleteCards(playerid, e_BJ_PLAYERS:playertype) {
     }
 }
 
-// Отрисовка текстрава с очками
+// РћС‚СЂРёСЃРѕРІРєР° С‚РµРєСЃС‚СЂР°РІР° СЃ РѕС‡РєР°РјРё
 stock BJ_Render_Score(playerid, e_BJ_PLAYERS:playertype) {
     /*
     if (playertype == BJ_DEALER) {
@@ -511,7 +511,7 @@ stock BJ_Render_Score(playerid, e_BJ_PLAYERS:playertype) {
     return 0;
 }
 
-// Отрисовка карт у заданного игрока
+// РћС‚СЂРёСЃРѕРІРєР° РєР°СЂС‚ Сѓ Р·Р°РґР°РЅРЅРѕРіРѕ РёРіСЂРѕРєР°
 stock BJ_Render_Cards(playerid, e_BJ_PLAYERS:playertype) {
     BJ_DeleteCards(playerid, playertype);
     BJ_Render_Score(playerid, playertype);
@@ -531,7 +531,7 @@ stock BJ_Render_Cards(playerid, e_BJ_PLAYERS:playertype) {
     return 0;
 }
 
-// Отрисовка контролов 
+// РћС‚СЂРёСЃРѕРІРєР° РєРѕРЅС‚СЂРѕР»РѕРІ 
 stock BJ_DrawPlayerButtons(playerid) {
     new PlayerText:tdid;
 
@@ -617,24 +617,24 @@ stock BJ_DrawPlayerButtons(playerid) {
     return 1;
 }
 
-// Команда для старта игры "/bj [сумма]"
+// РљРѕРјР°РЅРґР° РґР»СЏ СЃС‚Р°СЂС‚Р° РёРіСЂС‹ "/bj [СЃСѓРјРјР°]"
 cmd:bj(playerid, args[]) {
     if (BJ_Games[playerid][BJ_IsActive]) {
-        SendClientMessage(playerid, 0xFFFFFFFF, "Игра уже идет!");
+        SendClientMessage(playerid, 0xFFFFFFFF, "РРіСЂР° СѓР¶Рµ РёРґРµС‚!");
         return 0;
     }
     new stake;
     sscanf(args, "i", stake);
     if (stake < BJ_MIN_STAKE) {
-        SendClientMessage(playerid, 0xFFFFFFFF, "Ставка не может быть меньше %d!", BJ_MIN_STAKE);
+        SendClientMessage(playerid, 0xFFFFFFFF, "РЎС‚Р°РІРєР° РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ РјРµРЅСЊС€Рµ %d!", BJ_MIN_STAKE);
         return 0;
     }
     if (stake > BJ_MAX_STAKE) {
-        SendClientMessage(playerid, 0xFFFFFFFF, "Ставка не может быть больше %d!", BJ_MAX_STAKE);
+        SendClientMessage(playerid, 0xFFFFFFFF, "РЎС‚Р°РІРєР° РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ Р±РѕР»СЊС€Рµ %d!", BJ_MAX_STAKE);
         return 0;
     }
     if (!AddPlayerMoney(playerid, -stake)) {
-        SendClientMessage(playerid, 0xFFFFFFFF, "Недостаточно средств!");
+        SendClientMessage(playerid, 0xFFFFFFFF, "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ СЃСЂРµРґСЃС‚РІ!");
         return 0;
     }
     BJ_StartGame(playerid, stake);
